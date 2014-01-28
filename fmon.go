@@ -4,7 +4,10 @@ import (
   "github.com/howeyc/fsnotify"
   "log"
   "flag"
+  "os"
   "os/exec"
+  "os/signal"
+  "syscall"
   "fmt"
   "time"
 )
@@ -16,19 +19,26 @@ func run(command []string) {
   if err != nil {
     log.Fatal(err)
   }
-  time.Sleep(time.Second)
 }
 
 func main() {
   pathPtr := flag.String("path", ".", "path of the target dir")
+  deadtimePtr := flag.Uint("deadtime", 1000, "deadtime of the trigger")
   flag.Parse()
   command := flag.Args()
 
   if len(command) == 0 {
-    log.Fatal("usage: fmon.exe [-path targetDir] {command}")
+    log.Fatal("usage: fmon.exe [-path targetDir] [-deadtime 1000] {command}")
   }
 
-  done := make(chan bool)
+  done := make(chan os.Signal, 1)
+  signal.Notify(done,
+    os.Kill,
+    os.Interrupt,
+    syscall.SIGHUP,
+    syscall.SIGINT,
+    syscall.SIGTERM,
+    syscall.SIGQUIT)
 
   watcher, err := fsnotify.NewWatcher()
   if err != nil {
@@ -44,6 +54,12 @@ func main() {
       case ev := <-watcher.Event:
         log.Println("event:", ev)
         run(command)
+        time.Sleep(time.Duration(*deadtimePtr) * time.Millisecond)
+        // flush channel
+        chanlen := len(watcher.Event)
+        for i := 0; i <= chanlen; i++ {
+          <- watcher.Event
+        }
       case err := <-watcher.Error:
         log.Println("error:", err)
       }
@@ -55,5 +71,6 @@ func main() {
     log.Fatal(err)
   }
 
-	<-done
+  <- done
+  log.Println("Exiting.")
 }
