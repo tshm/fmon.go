@@ -1,5 +1,6 @@
 fmon
 ====
+tool for executing given command upon file change.
 
 example:
   fmon -deadtime=1000 -path=monitorDir dir
