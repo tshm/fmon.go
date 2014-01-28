@@ -1,3 +1,5 @@
+[![Build Status](https://drone.io/github.com/tshm/fmon/status.png)](https://drone.io/github.com/tshm/fmon/latest)
+
 fmon
 ====
 tool for executing given command upon file change.
