@@ -17,7 +17,7 @@ func run(command []string) {
   buf, err := cmd.CombinedOutput()
   fmt.Printf("%s\n", buf)
   if err != nil {
-    log.Fatal(err)
+    log.Println(err)
   }
 }
 
