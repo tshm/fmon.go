@@ -52,6 +52,9 @@ func main() {
     for {
       select {
       case ev := <-watcher.Event:
+        if (!ev.IsModify()) {
+          continue
+        }
         log.Println("event:", ev)
         run(command)
         time.Sleep(time.Duration(*deadtimePtr) * time.Millisecond)
